@@ -1,0 +1,26 @@
+{
+  "installationFolder": "/Users/kevinjapa/StudioProjects/ProyectoVision/OpenCV/build/intermediates/prefab_package/debug/prefab",
+  "gradlePath": ":OpenCV",
+  "packageInfo": {
+    "packageName": "OpenCV",
+    "packageSchemaVersion": 2,
+    "packageDependencies": [],
+    "modules": [
+      {
+        "moduleName": "opencv_jni_shared",
+        "moduleHeaders": "/Users/kevinjapa/StudioProjects/ProyectoVision/OpenCV/native/jni/include",
+        "moduleExportLibraries": [],
+        "abis": [
+          {
+            "abiName": "armeabi-v7a",
+            "abiApi": 21,
+            "abiNdkMajor": 25,
+            "abiStl": "c++_shared",
+            "abiLibrary": "/Users/kevinjapa/StudioProjects/ProyectoVision/OpenCV/.cxx/Debug/4b1t5t3s/armeabi-v7a/libopencv_jni_shared.a",
+            "abiAndroidGradleBuildJsonFile": "/Users/kevinjapa/StudioProjects/ProyectoVision/OpenCV/.cxx/Debug/4b1t5t3s/armeabi-v7a/android_gradle_build.json"
+          }
+        ]
+      }
+    ]
+  }
+}

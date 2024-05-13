@@ -1,0 +1,4 @@
+/Users/kevinjapa/Library/Android/sdk/cmake/3.22.1/bin/ninja \
+  -C \
+  /Users/kevinjapa/StudioProjects/ProyectoVision/OpenCV/.cxx/Debug/4b1t5t3s/x86_64 \
+  opencv_jni_shared

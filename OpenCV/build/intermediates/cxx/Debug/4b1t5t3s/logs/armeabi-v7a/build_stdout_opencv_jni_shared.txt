@@ -1,0 +1,2 @@
+ninja: Entering directory `/Users/kevinjapa/StudioProjects/ProyectoVision/OpenCV/.cxx/Debug/4b1t5t3s/armeabi-v7a'
+ninja: no work to do.
