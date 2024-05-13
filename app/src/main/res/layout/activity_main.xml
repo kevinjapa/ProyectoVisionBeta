@@ -7,13 +7,10 @@
     tools:context=".MainActivity">
 
     <org.opencv.android.JavaCameraView
-        android:id="@+id/camera_view"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:visibility="gone"
-        app:camera_id="any"
-        app:show_fps="true"
-        app:opencv_camera_id="-1" />
+        android:id="@+id/cameraView"
+         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
 
