@@ -1,90 +1,32 @@
 package ups.vision.proyectovision;
 
 
-import org.opencv.android.CameraActivity;
-import org.opencv.android.CameraBridgeViewBase;
-import org.opencv.android.OpenCVLoader;
-import org.opencv.core.Mat;
-
-import android.content.pm.PackageManager;
+import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
-import android.Manifest;
+import android.view.View;
+import android.widget.Button;
 
-
-import androidx.annotation.NonNull;
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
-import java.util.Collections;
-import java.util.List;
 
-import javax.security.auth.Destroyable;
-
-public class MainActivity extends CameraActivity {
-
-    CameraBridgeViewBase cameraBridgeViewBase;
+public class MainActivity extends AppCompatActivity {
 
     @Override
-    protected void onCreate(Bundle savedInstanceState){
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main); // Asegúrate de que este sea el nombre correcto de tu layout
 
-        getPermission();
+        EdgeToEdge.enable(this);
 
-        cameraBridgeViewBase = findViewById(R.id.cameraView);
+        Button captura = findViewById(R.id.camara_main);
 
-        cameraBridgeViewBase.setCvCameraViewListener(new CameraBridgeViewBase.CvCameraViewListener2(){
+        captura.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onCameraViewStarted(int width, int heigt){}
-            @Override
-            public void onCameraViewStopped() {}
-            @Override
-            public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame){
-                return inputFrame.rgba();
+            public void onClick(View v) {
+                Intent intent= new Intent(MainActivity.this, CamaraActivity.class);
+                startActivity(intent); // Utiliza startActivity() en lugar de startActivities()
             }
         });
-
-        if(OpenCVLoader.initDebug()) {
-            cameraBridgeViewBase.enableView();
-        }
     }
-
-    @Override
-    protected void onResume(){
-        super.onResume();
-    cameraBridgeViewBase.enableView();
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        cameraBridgeViewBase.disableView();
-    }
-
-    @Override
-    protected void onPause(){
-        super.onPause();
-        cameraBridgeViewBase.disableView();
-    }
-
-
-    @Override
-    protected List<? extends CameraBridgeViewBase> getCameraViewList(){
-        return Collections.singletonList(cameraBridgeViewBase);
-    }
-
-    void getPermission(){
-        if(checkSelfPermission(Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
-            requestPermissions(new String[]{Manifest.permission.CAMERA}, 101);
-        }
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults){
-        super.onRequestPermissionsResult(requestCode,permissions, grantResults);
-        if(grantResults.length>0 && grantResults[0]!= PackageManager.PERMISSION_GRANTED){
-
-        }
-    }
-
 }

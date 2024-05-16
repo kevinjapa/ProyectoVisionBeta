@@ -5,10 +5,11 @@
 #include <opencv2/imgproc.hpp>
 #include <opencv2/dnn.hpp>
 #include <opencv2/video.hpp>
+#include <android/log.h>
 
 #include "android/bitmap.h"
 
-
+using namespace cv;
 
 extern "C" JNIEXPORT jstring
 
@@ -20,9 +21,9 @@ Java_ups_vision_proyectovision_MainActivity_stringFromJNI(
     return env->NewStringUTF(hello.c_str());
 }
 
-extern "C" JNIEXPORT void JNICALL
-Java_ups_vision_proyectovision_MainActivity_Camara(JNIEnv *env, jobject thiz, jlong matAddrGray){
-    cv::Mat& frame = *(cv::Mat*)matAddrGray;
-    cv::cvtColor(frame, frame, cv::COLOR_BGR2GRAY); // Convertir a escala de grises
 
+extern "C" JNIEXPORT void JNICALL
+Java_ups_vision_proyectovision_MainActivity_imagenGris(JNIEnv *env, jobject object, jobject imagen) {
+   Mat mGray= reinterpret_cast<Mat &&>(imagen);
+   cvtColor(mGray, mGray, COLOR_RGBA2GRAY);
 }
