@@ -1,12 +1,12 @@
 package ups.vision.proyectovision;
 
 import android.Manifest;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 
@@ -17,6 +17,7 @@ import org.opencv.android.Utils;
 import org.opencv.core.Core;
 import org.opencv.core.Mat;
 
+import java.io.ByteArrayOutputStream;
 import java.util.Collections;
 import java.util.List;
 
@@ -24,7 +25,7 @@ public class CamaraActivity extends CameraActivity {
     Mat frame;
 
     CameraBridgeViewBase cameraBridgeViewBase;
-    private ImageView imagenTomada;
+    //private ImageView imagenTomada;
 
 
     @Override
@@ -37,7 +38,7 @@ public class CamaraActivity extends CameraActivity {
         getPermission();
 
         cameraBridgeViewBase = findViewById(R.id.cameraView);
-        imagenTomada = findViewById(R.id.resultado);
+        //imagenTomada = findViewById(R.id.resultado);
         //tomar la foto boton
         Button captura = findViewById(R.id.captura);
 
@@ -113,15 +114,23 @@ public class CamaraActivity extends CameraActivity {
         }
     }
 
-    public void captureImagen(){
+    public void captureImagen() {
         Core.rotate(frame, frame, Core.ROTATE_90_CLOCKWISE);
 
-        Bitmap bitmap= Bitmap.createBitmap(frame.cols(), frame.rows(), Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = Bitmap.createBitmap(frame.cols(), frame.rows(), Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(frame, bitmap);
 
-        imagenTomada.setImageBitmap(bitmap);
-        imagenTomada.setScaleType(ImageView.ScaleType.FIT_CENTER);
+//        imagenTomada.setImageBitmap(bitmap);
+//        imagenTomada.setScaleType(ImageView.ScaleType.FIT_CENTER);
+
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        byte[] byteArray = stream.toByteArray();
+
+        Intent intent = new Intent(CamaraActivity.this, MainActivity.class);
+        intent.putExtra("capturedImage", byteArray);
+        startActivity(intent);
+        finish();
+        System.out.println("finaliza --------------------------------------------------");
     }
-
-
 }
