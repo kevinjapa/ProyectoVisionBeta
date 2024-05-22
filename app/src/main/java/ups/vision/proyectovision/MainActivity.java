@@ -18,8 +18,9 @@ public class MainActivity extends AppCompatActivity {
 
     ImageView imagenTomada, imagenFiltro;
     Bitmap bitmapOriginal;
-
-    
+    static {
+        System.loadLibrary("proyectovision");
+    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -60,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
     }
     public void llamar(Bitmap bitmapOriginal){
         Bitmap outputBitmap = bitmapOriginal.copy(bitmapOriginal.getConfig(), true);
-        imagenGris(bitmapOriginal);
+        imagenGris(outputBitmap);
         imagenFiltro.setImageBitmap(outputBitmap);
     }
 
