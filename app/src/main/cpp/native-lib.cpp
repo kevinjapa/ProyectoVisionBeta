@@ -180,5 +180,15 @@ Java_ups_vision_proyectovision_MainActivity_iluminacion
     matToBitmap(env, filtro, bitmapOut, false);
 }
 
+extern "C"
+JNIEXPORT void JNICALL
+Java_ups_vision_proyectovision_MainActivity_texto
+        (JNIEnv* env,
+         jobject /*this*/,
+         jobject bitmapIn,
+         jobject bitmapOut){
+    
+}
+
 
 

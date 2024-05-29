@@ -5,6 +5,7 @@ import android.app.ActivityManager;
 import android.app.AppOpsManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -20,6 +21,8 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -73,6 +76,7 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View v) {
                 Intent intent= new Intent(MainActivity.this, CamaraActivity.class);
                 startActivity(intent);
+                finish();
             }
         });
         btnIluminacion.setOnClickListener(new View.OnClickListener(){
@@ -95,6 +99,7 @@ public class MainActivity extends AppCompatActivity {
                     medianBlur(bitmapOriginal, outputBitmap);
 //                    detectorBordes(bitmapOriginal, outputBitmap);
                     fondoVerde(outputBitmap, outputBitmap);
+
                     imagenFiltro.setImageBitmap(outputBitmap);
                 } else {
                     Toast.makeText(MainActivity.this, "No image to filter", Toast.LENGTH_SHORT).show();
@@ -184,24 +189,27 @@ public class MainActivity extends AppCompatActivity {
 //        txtCpu.setText(cpuUsage);
     }
     private void getCpuUsage() {
-    try {
-        String[] sa = {"/system/bin/top", "-n", "1"};
-        Process process = Runtime.getRuntime().exec(sa);
-        java.io.BufferedReader in = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream()));
-        String line;
-        while ((line = in.readLine()) != null) {
-            if (line.contains("User") && line.contains("System")) {
-                String[] values = line.split("\\s+");
-                txtCpu.setText(values[2].replace("%",""));
-//                return values[1].replace("%");
+        try {
+            String[] cmd = {"/system/bin/top", "-n", "1"};
+            Process process = Runtime.getRuntime().exec(cmd);
+            java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream()));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (line.startsWith("User")) {
+                    String[] values = line.split(",");
+                    String userCpu = values[0].split(" ")[1].replace("%", "").trim();
+                    String systemCpu = values[1].split(" ")[1].replace("%", "").trim();
+                    int totalCpu = Integer.parseInt(userCpu) + Integer.parseInt(systemCpu);
+                    txtCpu.setText(totalCpu + "%");
+                    break;
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+            txtCpu.setText("Error en cpu");
         }
-    } catch (Exception e) {
-        e.printStackTrace();
-        txtCpu.setText("Error en cpu");
     }
-//    return "N/A";
-}
+
     private boolean hasUsageStatsPermission() {
         AppOpsManager appOps = (AppOpsManager) getSystemService(Context.APP_OPS_SERVICE);
         int mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), getPackageName());
@@ -211,4 +219,6 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
         startActivity(intent);
     }
+
+
 }
