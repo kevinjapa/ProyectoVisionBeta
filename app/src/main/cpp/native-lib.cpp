@@ -116,28 +116,7 @@ void matToBitmap(JNIEnv * env, cv::Mat src, jobject bitmap, jboolean needPremult
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_ups_vision_proyectovision_MainActivity_imagenGris(JNIEnv *env, jobject instance, jobject bitmap) {
-    AndroidBitmapInfo info;
-    void* pixels;
-
-    // Obtén la información del bitmap
-    if (AndroidBitmap_getInfo(env, bitmap, &info) < 0) return;
-    if (info.format != ANDROID_BITMAP_FORMAT_RGBA_8888) return;
-    if (AndroidBitmap_lockPixels(env, bitmap, &pixels) < 0) return;
-
-    // Crea un objeto cv::Mat desde el bitmap
-    Mat frame(info.height, info.width, CV_8UC4, pixels);
-    Mat gray;
-    // Convierte a escala de grises
-    cvtColor(frame, gray, COLOR_RGBA2GRAY);
-    cvtColor(gray, frame, COLOR_GRAY2RGBA);
-
-    AndroidBitmap_unlockPixels(env, bitmap);
-}
-
-extern "C"
-JNIEXPORT void JNICALL
-Java_ups_vision_proyectovision_MainActivity_detectorBordes
+Java_ups_vision_proyectovision_MainActivity_fondoVerde
         (JNIEnv* env,
         jobject /*this*/,
         jobject bitmapIn,
@@ -168,6 +147,38 @@ Java_ups_vision_proyectovision_MainActivity_detectorBordes
     src.copyTo(fondo, mascara_fondo);
 
     matToBitmap(env, fondo, bitmapOut, false);
-
 }
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_ups_vision_proyectovision_MainActivity_medianBlur
+(JNIEnv* env,
+jobject /*this*/,
+jobject bitmapIn,
+        jobject bitmapOut){
+    Mat src,filtro;
+    int mascara=3;
+    bitmapToMat(env, bitmapIn, src, false);
+    medianBlur(src,filtro,mascara);
+    matToBitmap(env, filtro, bitmapOut, false);
+}
+
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_ups_vision_proyectovision_MainActivity_iluminacion
+        (JNIEnv* env,
+         jobject /*this*/,
+         jobject bitmapIn,
+         jobject bitmapOut){
+    Mat src, filtro;
+    bitmapToMat(env, bitmapIn, src, false);
+    cvtColor(src,src,COLOR_BGR2GRAY);
+    Ptr<CLAHE> metodoClahe = createCLAHE();
+    metodoClahe-> apply(src, filtro);
+    metodoClahe-> setTilesGridSize(Size(5,5));
+    matToBitmap(env, filtro, bitmapOut, false);
+}
+
+
 
