@@ -5,7 +5,6 @@ import android.app.ActivityManager;
 import android.app.AppOpsManager;
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -21,8 +20,6 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -34,7 +31,8 @@ public class MainActivity extends AppCompatActivity {
 
     ImageView imagenTomada, imagenFiltro;
     Bitmap bitmapOriginal, outputBitmap;
-    TextView txtRam, txtCpu;
+    TextView txtRam,txtMensaje;
+    String mensaje;
     Runnable runnable;
 
     static {
@@ -50,11 +48,11 @@ public class MainActivity extends AppCompatActivity {
         Button btnIluminacion = findViewById(R.id.btnFiltro);
         Button btnFondo = findViewById(R.id.btnFondo);
         Button btnEnviar = findViewById(R.id.btnEnviar);
-        EditText txtIP = findViewById(R.id.textIP);
+        EditText txtIP = findViewById(R.id.txtIP);
         txtRam = findViewById(R.id.lblRAM);
-        txtCpu = findViewById(R.id.lblCPU);
         imagenTomada= findViewById(R.id.imgOriginal);
         imagenFiltro=findViewById(R.id.imgFiltro);
+        txtMensaje = findViewById(R.id.txtMensaje);
 
         Handler handler = new Handler();
 
@@ -65,7 +63,6 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void run() {
                     updateUsageStats();
-                    getCpuUsage();
                     handler.postDelayed(this, 5000);
                 }
             };
@@ -94,12 +91,16 @@ public class MainActivity extends AppCompatActivity {
         btnFondo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                mensaje=txtMensaje.getText().toString();
+                if (mensaje.isEmpty())
+                    mensaje=" ";
                 if (bitmapOriginal != null) {
                     outputBitmap = bitmapOriginal.copy(bitmapOriginal.getConfig(), true);
                     medianBlur(bitmapOriginal, outputBitmap);
 //                    detectorBordes(bitmapOriginal, outputBitmap);
+//                    efectoCartoon(outputBitmap,outputBitmap);
                     fondoVerde(outputBitmap, outputBitmap);
-
+                    textoImagen(outputBitmap,outputBitmap,mensaje);
                     imagenFiltro.setImageBitmap(outputBitmap);
                 } else {
                     Toast.makeText(MainActivity.this, "No image to filter", Toast.LENGTH_SHORT).show();
@@ -164,11 +165,12 @@ public class MainActivity extends AppCompatActivity {
             imagenTomada.setScaleType(ImageView.ScaleType.FIT_CENTER);
         }
     }
-
     //Filtros
     private native void fondoVerde(android.graphics.Bitmap in, android.graphics.Bitmap out);
     private native void medianBlur(android.graphics.Bitmap in, android.graphics.Bitmap out);
     private native void iluminacion(android.graphics.Bitmap in, android.graphics.Bitmap out);
+    private native void textoImagen(android.graphics.Bitmap in, android.graphics.Bitmap out, String mensaje);
+    private native void efectoCartoon(android.graphics.Bitmap in, android.graphics.Bitmap out);
 
 
     //USO DE RECURSOS
@@ -187,27 +189,6 @@ public class MainActivity extends AppCompatActivity {
 
 //        String cpuUsage = getCpuUsage();
 //        txtCpu.setText(cpuUsage);
-    }
-    private void getCpuUsage() {
-        try {
-            String[] cmd = {"/system/bin/top", "-n", "1"};
-            Process process = Runtime.getRuntime().exec(cmd);
-            java.io.BufferedReader reader = new java.io.BufferedReader(new java.io.InputStreamReader(process.getInputStream()));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith("User")) {
-                    String[] values = line.split(",");
-                    String userCpu = values[0].split(" ")[1].replace("%", "").trim();
-                    String systemCpu = values[1].split(" ")[1].replace("%", "").trim();
-                    int totalCpu = Integer.parseInt(userCpu) + Integer.parseInt(systemCpu);
-                    txtCpu.setText(totalCpu + "%");
-                    break;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            txtCpu.setText("Error en cpu");
-        }
     }
 
     private boolean hasUsageStatsPermission() {

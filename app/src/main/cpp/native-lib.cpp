@@ -126,7 +126,8 @@ Java_ups_vision_proyectovision_MainActivity_fondoVerde
     bitmapToMat(env, bitmapIn, src, false);
 
     // Convertir la imagen a HSV para trabajar con el canal de color verde
-    Mat hsv;
+    Mat hsv,src2;
+    src2=src.clone();
     cvtColor(src, hsv, COLOR_BGR2HSV);
 
     // Definir los límites del color verde en HSV
@@ -146,7 +147,33 @@ Java_ups_vision_proyectovision_MainActivity_fondoVerde
     fondo.setTo(Scalar(255, 255, 255)); // Fondo blanco
     src.copyTo(fondo, mascara_fondo);
 
-    matToBitmap(env, fondo, bitmapOut, false);
+    //Filtro del cartoon
+    Mat imgBN;
+    int mascara=7;
+    cvtColor(fondo, imgBN, COLOR_BGR2GRAY);
+    medianBlur(imgBN, imgBN, mascara);
+    Laplacian(imgBN,imgBN,CV_8U, mascara);
+    threshold(imgBN,imgBN,80,255,THRESH_BINARY_INV);
+
+    // Ejemplo del método usado para crear imágenes vacías
+    Mat resultado = Mat::zeros(Size(imgBN.cols, imgBN.rows), CV_8UC4);
+
+    for (int i=0;i<imgBN.rows;i++){
+        for(int j=0;j<imgBN.cols;j++){
+
+            Vec4b pixel1 = fondo.at<Vec4b>(i, j);
+            uchar pixel2 = imgBN.at<uchar>(i, j);
+
+            if(pixel1[0] == 0 && pixel1[1] == 0 && pixel1[2] == 0 && pixel1[3] == 0){
+                resultado.at<Vec4b>(i,j) = Vec4b(0, 0, 0, 0);
+            }else{
+                resultado.at<Vec4b>(i,j) = Vec4b(pixel2, pixel2, pixel2, 255);
+            }
+        }
+    }
+
+    matToBitmap(env, resultado, bitmapOut, false);
+//    matToBitmap(env, fondo, bitmapOut, false);
 }
 
 extern "C"
@@ -157,7 +184,7 @@ jobject /*this*/,
 jobject bitmapIn,
         jobject bitmapOut){
     Mat src,filtro;
-    int mascara=3;
+    int mascara=5;
     bitmapToMat(env, bitmapIn, src, false);
     medianBlur(src,filtro,mascara);
     matToBitmap(env, filtro, bitmapOut, false);
@@ -182,13 +209,80 @@ Java_ups_vision_proyectovision_MainActivity_iluminacion
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_ups_vision_proyectovision_MainActivity_texto
+Java_ups_vision_proyectovision_MainActivity_textoImagen
+        (JNIEnv* env,
+         jobject /*this*/,
+         jobject bitmapIn,
+         jobject bitmapOut,
+         jstring texto){
+    Mat src, imgTexto;
+    const char *nativeTexto = env->GetStringUTFChars(texto, 0);
+    std::string textoCpp(nativeTexto);
+//    env->ReleaseStringUTFChars(texto, nativeTexto);
+    bitmapToMat(env, bitmapIn, src, false);
+//    putText(src,textoCpp,Point(src.cols/3,src.rows/3), FONT_HERSHEY_SIMPLEX, 2.0, Scalar(3,3,233));
+    putText(src,textoCpp, Point(src.cols/4,src.rows-50),FONT_HERSHEY_SIMPLEX,1,Scalar(3,3,255),3);
+    matToBitmap(env, src, bitmapOut, false);
+}
+
+extern "C"
+JNIEXPORT void JNICALL
+Java_ups_vision_proyectovision_MainActivity_efectoCartoon
         (JNIEnv* env,
          jobject /*this*/,
          jobject bitmapIn,
          jobject bitmapOut){
-    
+    Mat src, imgBN,color,src2,mask;
+    int mascara=5;
+    bitmapToMat(env, bitmapIn, src, false);
+
+    cvtColor(src, imgBN, COLOR_BGR2GRAY);
+    medianBlur(imgBN, imgBN, mascara);
+    Laplacian(imgBN,imgBN,CV_8U, mascara);
+    threshold(imgBN,imgBN,80,255,THRESH_BINARY_INV);
+
+    // Ejemplo del método usado para crear imágenes vacías
+    Mat resultado = Mat::zeros(Size(imgBN.cols, imgBN.rows), CV_8UC4);
+
+    for (int i=0;i<imgBN.rows;i++){
+        for(int j=0;j<imgBN.cols;j++){
+
+            Vec4b pixel1 = src.at<Vec4b>(i, j);//para el img con fondo eliminado
+            uchar pixel2 = imgBN.at<uchar>(i, j);
+
+            if(pixel1[0] == 0 && pixel1[1] == 0 && pixel1[2] == 0 && pixel1[3] == 0){
+                resultado.at<Vec4b>(i,j) = Vec4b(0, 0, 0, 0);
+            }else{
+                resultado.at<Vec4b>(i,j) = Vec4b(pixel2, pixel2, pixel2, 255);
+            }
+        }
+    }
+
+//    cvtColor(src, imgBN, COLOR_BGR2GRAY);
+//    cvtColor(src,src2,COLOR_BGRA2BGR);
+//    medianBlur(imgBN, imgBN, mascara);
+//    Laplacian(imgBN,imgBN,CV_8U, mascara+2);
+//    threshold(imgBN,imgBN,80,255,THRESH_BINARY_INV);
+//    bilateralFilter(src2,color,9,100,30);
+//    cvtColor(imgBN,imgBN,COLOR_GRAY2BGR);
+////    bitwise_not(imgBN, mask);
+//
+////    resize(mask, mask, src.size());
+////    resize(color, color, src.size());
+////
+//    // Combinar la imagen suavizada con los bordes, manteniendo los colores originales en las áreas de los bordes
+////    bitwise_and(src, mask, src);
+////    bitwise_and(color, ~mask, color);
+//    Mat resultado=Mat::zeros(src.size(),CV_8UC3);
+//    add(imgBN, color, src);
+//    for (int i = 0; i < imgBN.rows; i++) {
+//        for (int j = 0; j < imgBN.cols; j++) {
+//            uchar pixel= imgBN.at<uchar>(i,j);
+//            if(pixel==255){
+//                resultado.at<Vec3b>(i,j)=src.at<Vec3b>(i,j);
+//            }
+//        }
+//    }
+////    add(imgBN, color, src);
+    matToBitmap(env, resultado, bitmapOut, false);
 }
-
-
-
