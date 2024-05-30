@@ -42,9 +42,7 @@ public class CamaraActivity extends CameraActivity {
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_camara);
-
         getPermission();
-
         cameraBridgeViewBase = findViewById(R.id.cameraView);
         Button captura = findViewById(R.id.captura);
 //        Button btnGrabar= findViewById(R.id.tbnGrabar);

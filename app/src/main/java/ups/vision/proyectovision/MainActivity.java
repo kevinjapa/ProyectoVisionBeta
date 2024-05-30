@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
         Button btnIluminacion = findViewById(R.id.btnFiltro);
         Button btnFondo = findViewById(R.id.btnFondo);
         Button btnEnviar = findViewById(R.id.btnEnviar);
+        Button btnFondoVerde =findViewById(R.id.tbnFondoVerde);
         EditText txtIP = findViewById(R.id.txtIP);
         txtRam = findViewById(R.id.lblRAM);
         imagenTomada= findViewById(R.id.imgOriginal);
@@ -99,12 +100,24 @@ public class MainActivity extends AppCompatActivity {
                     medianBlur(bitmapOriginal, outputBitmap);
 //                    detectorBordes(bitmapOriginal, outputBitmap);
 //                    efectoCartoon(outputBitmap,outputBitmap);
-                    fondoVerde(outputBitmap, outputBitmap);
+                    fondoVerdeCartoon(outputBitmap, outputBitmap);
                     textoImagen(outputBitmap,outputBitmap,mensaje);
                     imagenFiltro.setImageBitmap(outputBitmap);
                 } else {
                     Toast.makeText(MainActivity.this, "No image to filter", Toast.LENGTH_SHORT).show();
                 }
+            }
+        });
+        btnFondoVerde.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(bitmapOriginal != null){
+                    outputBitmap = bitmapOriginal.copy(bitmapOriginal.getConfig(), true);
+                    fondoVerde(bitmapOriginal,outputBitmap);
+                    imagenFiltro.setImageBitmap(outputBitmap);
+                }
+                else Toast.makeText(MainActivity.this, "Sin imagen", Toast.LENGTH_SHORT).show();
+
             }
         });
         btnEnviar.setOnClickListener(new View.OnClickListener()
@@ -166,10 +179,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     //Filtros
-    private native void fondoVerde(android.graphics.Bitmap in, android.graphics.Bitmap out);
+    private native void fondoVerdeCartoon(android.graphics.Bitmap in, android.graphics.Bitmap out);
     private native void medianBlur(android.graphics.Bitmap in, android.graphics.Bitmap out);
     private native void iluminacion(android.graphics.Bitmap in, android.graphics.Bitmap out);
     private native void textoImagen(android.graphics.Bitmap in, android.graphics.Bitmap out, String mensaje);
+    private native void fondoVerde(android.graphics.Bitmap in, android.graphics.Bitmap out);
 
 
     //USO DE RECURSOS
