@@ -49,7 +49,7 @@ public class CamaraActivity extends CameraActivity {
         Button captura = findViewById(R.id.captura);
 //        Button btnGrabar= findViewById(R.id.tbnGrabar);
         lblFPS= findViewById(R.id.lblFPS);
-        lblFPS.setTextColor(getResources().getColor(R.color.white)); // usando un recurso de color
+        lblFPS.setTextColor(getResources().getColor(R.color.white));
         cameraBridgeViewBase.setCvCameraViewListener(new CameraBridgeViewBase.CvCameraViewListener2(){
             @Override
             public void onCameraViewStarted(int width, int heigt){
@@ -64,19 +64,20 @@ public class CamaraActivity extends CameraActivity {
             public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame){
                 frame = inputFrame.rgba();
                 //calculo de FPS
-
                 framesCount++;
                 long currentTime = System.currentTimeMillis();
                 if (currentTime - lastTime >= 1000) {
                     fps = framesCount;
                     framesCount = 0;
                     lastTime = currentTime;
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            lblFPS.setText("FPS: "+fps);
-                        }
-                    });
+                    lblFPS.setText("FPS: "+fps);
+
+//                    runOnUiThread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            lblFPS.setText("FPS: "+fps);
+//                        }
+//                    });
                 }
                 return frame;
             }
