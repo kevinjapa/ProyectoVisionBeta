@@ -170,7 +170,6 @@ public class MainActivity extends AppCompatActivity {
     private native void medianBlur(android.graphics.Bitmap in, android.graphics.Bitmap out);
     private native void iluminacion(android.graphics.Bitmap in, android.graphics.Bitmap out);
     private native void textoImagen(android.graphics.Bitmap in, android.graphics.Bitmap out, String mensaje);
-    private native void efectoCartoon(android.graphics.Bitmap in, android.graphics.Bitmap out);
 
 
     //USO DE RECURSOS
@@ -187,8 +186,6 @@ public class MainActivity extends AppCompatActivity {
         txtRam.setText(ramUsageApp);
         System.out.println("Ram usada; "+ramUsageApp);
 
-//        String cpuUsage = getCpuUsage();
-//        txtCpu.setText(cpuUsage);
     }
 
     private boolean hasUsageStatsPermission() {

@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.view.Surface;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 
@@ -31,9 +32,9 @@ import java.util.Objects;
 public class CamaraActivity extends CameraActivity {
     Mat frame;
     Bitmap bitmap;
-    private MediaRecorder mediaRecorder;
-    private boolean isRecording = false;
-    private String videoFilePath;
+    TextView lblFPS;
+    private long lastTime = 0;
+    private int framesCount = 0, fps = 0;
 
     CameraBridgeViewBase cameraBridgeViewBase;
 
@@ -46,12 +47,14 @@ public class CamaraActivity extends CameraActivity {
 
         cameraBridgeViewBase = findViewById(R.id.cameraView);
         Button captura = findViewById(R.id.captura);
-        Button btnGrabar= findViewById(R.id.tbnGrabar);
-
+//        Button btnGrabar= findViewById(R.id.tbnGrabar);
+        lblFPS= findViewById(R.id.lblFPS);
+        lblFPS.setTextColor(getResources().getColor(R.color.white)); // usando un recurso de color
         cameraBridgeViewBase.setCvCameraViewListener(new CameraBridgeViewBase.CvCameraViewListener2(){
             @Override
             public void onCameraViewStarted(int width, int heigt){
                 frame = new Mat();
+                lastTime = System.currentTimeMillis();
             }
             @Override
             public void onCameraViewStopped() {
@@ -60,10 +63,24 @@ public class CamaraActivity extends CameraActivity {
             @Override
             public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame){
                 frame = inputFrame.rgba();
+                //calculo de FPS
+
+                framesCount++;
+                long currentTime = System.currentTimeMillis();
+                if (currentTime - lastTime >= 1000) {
+                    fps = framesCount;
+                    framesCount = 0;
+                    lastTime = currentTime;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            lblFPS.setText("FPS: "+fps);
+                        }
+                    });
+                }
                 return frame;
             }
         });
-
         if(OpenCVLoader.initDebug()) {
             cameraBridgeViewBase.enableView();
         }
@@ -76,19 +93,19 @@ public class CamaraActivity extends CameraActivity {
                 }
             }
         });
-        btnGrabar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(isRecording){
-//                    stopRecording();
-                    btnGrabar.setText("Grabar");
-                } else {
-//                    startRecording();
-                    btnGrabar.setText("Detener");
-                }
-                isRecording = !isRecording;
-            }
-        });
+//        btnGrabar.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                if(isRecording){
+////                    stopRecording();
+//                    btnGrabar.setText("Grabar");
+//                } else {
+////                    startRecording();
+//                    btnGrabar.setText("Detener");
+//                }
+//                isRecording = !isRecording;
+//            }
+//        });
     }
     @Override
     protected void onResume(){
@@ -100,25 +117,20 @@ public class CamaraActivity extends CameraActivity {
         super.onDestroy();
         cameraBridgeViewBase.disableView();
     }
-
     @Override
     protected void onPause(){
         super.onPause();
         cameraBridgeViewBase.disableView();
     }
-
-
     @Override
     protected List<? extends CameraBridgeViewBase> getCameraViewList(){
         return Collections.singletonList(cameraBridgeViewBase);
     }
-
     void getPermission(){
         if(checkSelfPermission(android.Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED){
             requestPermissions(new String[]{Manifest.permission.CAMERA}, 101);
         }
     }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults){
         super.onRequestPermissionsResult(requestCode,permissions, grantResults);
@@ -129,21 +141,14 @@ public class CamaraActivity extends CameraActivity {
 
     public void captureImagen() {
         Core.rotate(frame, frame, Core.ROTATE_90_CLOCKWISE);
-
         bitmap = Bitmap.createBitmap(frame.cols(), frame.rows(), Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(frame, bitmap);
-
 //        imagenTomada.setImageBitmap(bitmap);
 //        imagenTomada.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
         byte[] byteArray = stream.toByteArray();
-
-//        Intent intent = new Intent(CamaraActivity.this, MainActivity.class);
-//        intent.putExtra("capturedImage", byteArray);
-//        startActivity(intent);
-//        finish();
 
         int targetSize = 1000000; // 1MB
         int width = bitmap.getWidth();
@@ -169,6 +174,5 @@ public class CamaraActivity extends CameraActivity {
         intent.putExtra("capturedImage", byteArray);
         startActivity(intent);
         finish();
-
     }
 }

@@ -154,16 +154,12 @@ Java_ups_vision_proyectovision_MainActivity_fondoVerde
     medianBlur(imgBN, imgBN, mascara);
     Laplacian(imgBN,imgBN,CV_8U, mascara);
     threshold(imgBN,imgBN,80,255,THRESH_BINARY_INV);
-
     // Ejemplo del método usado para crear imágenes vacías
     Mat resultado = Mat::zeros(Size(imgBN.cols, imgBN.rows), CV_8UC4);
-
     for (int i=0;i<imgBN.rows;i++){
         for(int j=0;j<imgBN.cols;j++){
-
             Vec4b pixel1 = fondo.at<Vec4b>(i, j);
             uchar pixel2 = imgBN.at<uchar>(i, j);
-
             if(pixel1[0] == 0 && pixel1[1] == 0 && pixel1[2] == 0 && pixel1[3] == 0){
                 resultado.at<Vec4b>(i,j) = Vec4b(0, 0, 0, 0);
             }else{
@@ -171,11 +167,9 @@ Java_ups_vision_proyectovision_MainActivity_fondoVerde
             }
         }
     }
-
     matToBitmap(env, resultado, bitmapOut, false);
 //    matToBitmap(env, fondo, bitmapOut, false);
 }
-
 extern "C"
 JNIEXPORT void JNICALL
 Java_ups_vision_proyectovision_MainActivity_medianBlur
@@ -225,64 +219,3 @@ Java_ups_vision_proyectovision_MainActivity_textoImagen
     matToBitmap(env, src, bitmapOut, false);
 }
 
-extern "C"
-JNIEXPORT void JNICALL
-Java_ups_vision_proyectovision_MainActivity_efectoCartoon
-        (JNIEnv* env,
-         jobject /*this*/,
-         jobject bitmapIn,
-         jobject bitmapOut){
-    Mat src, imgBN,color,src2,mask;
-    int mascara=5;
-    bitmapToMat(env, bitmapIn, src, false);
-
-    cvtColor(src, imgBN, COLOR_BGR2GRAY);
-    medianBlur(imgBN, imgBN, mascara);
-    Laplacian(imgBN,imgBN,CV_8U, mascara);
-    threshold(imgBN,imgBN,80,255,THRESH_BINARY_INV);
-
-    // Ejemplo del método usado para crear imágenes vacías
-    Mat resultado = Mat::zeros(Size(imgBN.cols, imgBN.rows), CV_8UC4);
-
-    for (int i=0;i<imgBN.rows;i++){
-        for(int j=0;j<imgBN.cols;j++){
-
-            Vec4b pixel1 = src.at<Vec4b>(i, j);//para el img con fondo eliminado
-            uchar pixel2 = imgBN.at<uchar>(i, j);
-
-            if(pixel1[0] == 0 && pixel1[1] == 0 && pixel1[2] == 0 && pixel1[3] == 0){
-                resultado.at<Vec4b>(i,j) = Vec4b(0, 0, 0, 0);
-            }else{
-                resultado.at<Vec4b>(i,j) = Vec4b(pixel2, pixel2, pixel2, 255);
-            }
-        }
-    }
-
-//    cvtColor(src, imgBN, COLOR_BGR2GRAY);
-//    cvtColor(src,src2,COLOR_BGRA2BGR);
-//    medianBlur(imgBN, imgBN, mascara);
-//    Laplacian(imgBN,imgBN,CV_8U, mascara+2);
-//    threshold(imgBN,imgBN,80,255,THRESH_BINARY_INV);
-//    bilateralFilter(src2,color,9,100,30);
-//    cvtColor(imgBN,imgBN,COLOR_GRAY2BGR);
-////    bitwise_not(imgBN, mask);
-//
-////    resize(mask, mask, src.size());
-////    resize(color, color, src.size());
-////
-//    // Combinar la imagen suavizada con los bordes, manteniendo los colores originales en las áreas de los bordes
-////    bitwise_and(src, mask, src);
-////    bitwise_and(color, ~mask, color);
-//    Mat resultado=Mat::zeros(src.size(),CV_8UC3);
-//    add(imgBN, color, src);
-//    for (int i = 0; i < imgBN.rows; i++) {
-//        for (int j = 0; j < imgBN.cols; j++) {
-//            uchar pixel= imgBN.at<uchar>(i,j);
-//            if(pixel==255){
-//                resultado.at<Vec3b>(i,j)=src.at<Vec3b>(i,j);
-//            }
-//        }
-//    }
-////    add(imgBN, color, src);
-    matToBitmap(env, resultado, bitmapOut, false);
-}
