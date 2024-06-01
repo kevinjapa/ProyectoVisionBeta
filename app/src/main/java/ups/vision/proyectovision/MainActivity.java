@@ -34,7 +34,6 @@ public class MainActivity extends AppCompatActivity {
     TextView txtRam,txtMensaje;
     String mensaje;
     Runnable runnable;
-
     static {
         System.loadLibrary("proyectovision");
     }
@@ -98,8 +97,6 @@ public class MainActivity extends AppCompatActivity {
                 if (bitmapOriginal != null) {
                     outputBitmap = bitmapOriginal.copy(bitmapOriginal.getConfig(), true);
                     medianBlur(bitmapOriginal, outputBitmap);
-//                    detectorBordes(bitmapOriginal, outputBitmap);
-//                    efectoCartoon(outputBitmap,outputBitmap);
                     fondoVerdeCartoon(outputBitmap, outputBitmap);
                     textoImagen(outputBitmap,outputBitmap,mensaje);
                     imagenFiltro.setImageBitmap(outputBitmap);
@@ -131,7 +128,6 @@ public class MainActivity extends AppCompatActivity {
                 }
                 else {
                     if(outputBitmap != null){
-                        // Envía la imagen transformada al servidor Flask
                         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                         outputBitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
                         byte[] byteArray = outputStream.toByteArray();
@@ -178,15 +174,11 @@ public class MainActivity extends AppCompatActivity {
             imagenTomada.setScaleType(ImageView.ScaleType.FIT_CENTER);
         }
     }
-    //Filtros
     private native void fondoVerdeCartoon(android.graphics.Bitmap in, android.graphics.Bitmap out);
     private native void medianBlur(android.graphics.Bitmap in, android.graphics.Bitmap out);
     private native void iluminacion(android.graphics.Bitmap in, android.graphics.Bitmap out);
     private native void textoImagen(android.graphics.Bitmap in, android.graphics.Bitmap out, String mensaje);
     private native void fondoVerde(android.graphics.Bitmap in, android.graphics.Bitmap out);
-
-
-    //USO DE RECURSOS
     private void updateUsageStats() {
         ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         int[] pids = { android.os.Process.myPid() };
@@ -201,7 +193,6 @@ public class MainActivity extends AppCompatActivity {
         System.out.println("Ram usada; "+ramUsageApp);
 
     }
-
     private boolean hasUsageStatsPermission() {
         AppOpsManager appOps = (AppOpsManager) getSystemService(Context.APP_OPS_SERVICE);
         int mode = appOps.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), getPackageName());
@@ -211,6 +202,4 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
         startActivity(intent);
     }
-
-
 }

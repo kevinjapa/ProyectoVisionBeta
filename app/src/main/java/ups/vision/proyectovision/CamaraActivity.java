@@ -35,9 +35,7 @@ public class CamaraActivity extends CameraActivity {
     TextView lblFPS;
     private long lastTime = 0;
     private int framesCount = 0, fps = 0;
-
     CameraBridgeViewBase cameraBridgeViewBase;
-
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
@@ -45,7 +43,6 @@ public class CamaraActivity extends CameraActivity {
         getPermission();
         cameraBridgeViewBase = findViewById(R.id.cameraView);
         Button captura = findViewById(R.id.captura);
-//        Button btnGrabar= findViewById(R.id.tbnGrabar);
         lblFPS= findViewById(R.id.lblFPS);
         lblFPS.setTextColor(getResources().getColor(R.color.white));
         cameraBridgeViewBase.setCvCameraViewListener(new CameraBridgeViewBase.CvCameraViewListener2(){
@@ -61,7 +58,6 @@ public class CamaraActivity extends CameraActivity {
             @Override
             public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame){
                 frame = inputFrame.rgba();
-                //calculo de FPS
                 framesCount++;
                 long currentTime = System.currentTimeMillis();
                 if (currentTime - lastTime >= 1000) {
@@ -69,13 +65,6 @@ public class CamaraActivity extends CameraActivity {
                     framesCount = 0;
                     lastTime = currentTime;
                     lblFPS.setText("FPS: "+fps);
-
-//                    runOnUiThread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                            lblFPS.setText("FPS: "+fps);
-//                        }
-//                    });
                 }
                 return frame;
             }
@@ -92,19 +81,6 @@ public class CamaraActivity extends CameraActivity {
                 }
             }
         });
-//        btnGrabar.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                if(isRecording){
-////                    stopRecording();
-//                    btnGrabar.setText("Grabar");
-//                } else {
-////                    startRecording();
-//                    btnGrabar.setText("Detener");
-//                }
-//                isRecording = !isRecording;
-//            }
-//        });
     }
     @Override
     protected void onResume(){
@@ -137,13 +113,10 @@ public class CamaraActivity extends CameraActivity {
 
         }
     }
-
     public void captureImagen() {
         Core.rotate(frame, frame, Core.ROTATE_90_CLOCKWISE);
         bitmap = Bitmap.createBitmap(frame.cols(), frame.rows(), Bitmap.Config.ARGB_8888);
         Utils.matToBitmap(frame, bitmap);
-//        imagenTomada.setImageBitmap(bitmap);
-//        imagenTomada.setScaleType(ImageView.ScaleType.FIT_CENTER);
 
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);

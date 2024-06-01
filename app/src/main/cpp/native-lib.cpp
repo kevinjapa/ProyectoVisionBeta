@@ -124,33 +124,24 @@ Java_ups_vision_proyectovision_MainActivity_fondoVerdeCartoon
     Mat src;
 
     bitmapToMat(env, bitmapIn, src, false);
-
     Mat hsv,src2;
     src2=src.clone();
     cvtColor(src, hsv, COLOR_BGR2HSV);
-
     Scalar verde_bajo(35, 50, 50);
     Scalar verde_alto(85, 255, 255);
-
     Mat mascara_verde;
     inRange(hsv, verde_bajo, verde_alto, mascara_verde);
-
     Mat mascara_fondo;
     bitwise_not(mascara_verde, mascara_fondo);
-
     Mat fondo;
     fondo.setTo(Scalar(255, 255, 255)); // Fondo blanco
     src.copyTo(fondo, mascara_fondo);
-
-    //Filtro del cartoon
     Mat imgBN;
     int mascara=7;
     cvtColor(fondo, imgBN, COLOR_BGR2GRAY);
     medianBlur(imgBN, imgBN, mascara);
     Laplacian(imgBN,imgBN,CV_8U, mascara);
     threshold(imgBN,imgBN,80,255,THRESH_BINARY_INV);
-
-    // Ejemplo del método usado para crear imágenes vacías
     Mat resultado = Mat::zeros(Size(imgBN.cols, imgBN.rows), CV_8UC4);
     for (int i=0;i<imgBN.rows;i++){
         for(int j=0;j<imgBN.cols;j++){
@@ -164,7 +155,6 @@ Java_ups_vision_proyectovision_MainActivity_fondoVerdeCartoon
         }
     }
     matToBitmap(env, resultado, bitmapOut, false);
-//    matToBitmap(env, fondo, bitmapOut, false);
 }
 extern "C"
 JNIEXPORT void JNICALL
@@ -188,48 +178,13 @@ Java_ups_vision_proyectovision_MainActivity_iluminacion
          jobject /*this*/,
          jobject bitmapIn,
          jobject bitmapOut){
-    Mat src, filtro,src2;
+    Mat src, filtro;
     bitmapToMat(env, bitmapIn, src, false);
-
-    Mat hsv,src3;
-    src3=src.clone();
-    cvtColor(src, hsv, COLOR_BGR2HSV);
-
-    Scalar verde_bajo(35, 50, 50);
-    Scalar verde_alto(85, 255, 255);
-
-    Mat mascara_verde;
-    inRange(hsv, verde_bajo, verde_alto, mascara_verde);
-
-    Mat mascara_fondo;
-    bitwise_not(mascara_verde, mascara_fondo);
-
-    Mat fondo;
-    fondo.setTo(Scalar(255, 255, 255)); // Fondo blanco
-    src.copyTo(fondo, mascara_fondo);
-
-    src2=src.clone();
     cvtColor(src,src,COLOR_BGR2GRAY);
     Ptr<CLAHE> metodoClahe = createCLAHE();
     metodoClahe-> apply(src, filtro);
     metodoClahe-> setTilesGridSize(Size(5,5));
-    
-    Mat resultado = Mat::zeros(Size(filtro.cols, filtro.rows), CV_8UC4);
-    for (int i=0;i<filtro.rows;i++){
-        for(int j=0;j<filtro.cols;j++){
-            Vec4b pixel1 = fondo.at<Vec4b>(i, j);
-            uchar pixel2 = filtro.at<uchar>(i, j);
-            if(pixel1[0] == 0 && pixel1[1] == 0 && pixel1[2] == 0 && pixel1[3] == 0){
-                resultado.at<Vec4b>(i,j) = Vec4b(0, 0, 0, 0);
-            }else{
-                resultado.at<Vec4b>(i,j) = Vec4b(pixel2, pixel2, pixel2, 255);
-            }
-        }
-    }
-
     matToBitmap(env, filtro, bitmapOut, false);
-
-//    matToBitmap(env, filtro, bitmapOut, false);
 }
 
 extern "C"
@@ -242,10 +197,8 @@ Java_ups_vision_proyectovision_MainActivity_textoImagen
          jstring texto){
     Mat src, imgTexto;
     const char *nativeTexto = env->GetStringUTFChars(texto, 0);
-    std::string textoCpp(nativeTexto);
-//    env->ReleaseStringUTFChars(texto, nativeTexto);
+    string textoCpp(nativeTexto);
     bitmapToMat(env, bitmapIn, src, false);
-//    putText(src,textoCpp,Point(src.cols/3,src.rows/3), FONT_HERSHEY_SIMPLEX, 2.0, Scalar(3,3,233));
     putText(src,textoCpp, Point(src.cols/4,src.rows-50),FONT_HERSHEY_SIMPLEX,1,Scalar(3,3,255),3);
     matToBitmap(env, src, bitmapOut, false);
 }
@@ -260,23 +213,14 @@ Java_ups_vision_proyectovision_MainActivity_fondoVerde
     Mat src;
     bitmapToMat(env, bitmapIn, src, false);
 
-    // Convertir la imagen a HSV para trabajar con el canal de color verde
     Mat hsv;
     cvtColor(src, hsv, COLOR_BGR2HSV);
-
-    // Definir los límites del color verde en HSV
     Scalar verde_bajo(35, 50, 50);
     Scalar verde_alto(85, 255, 255);
-
-    // Crear una máscara para el rango de color verde
     Mat mascara_verde;
     inRange(hsv, verde_bajo, verde_alto, mascara_verde);
-
-    // Invertir la máscara para obtener el fondo
     Mat mascara_fondo;
     bitwise_not(mascara_verde, mascara_fondo);
-
-    // Aplicar la máscara al fondo
     Mat fondo;
     fondo.setTo(Scalar(255, 255, 255)); // Fondo blanco
     src.copyTo(fondo, mascara_fondo);
