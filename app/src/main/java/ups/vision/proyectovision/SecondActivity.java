@@ -15,6 +15,10 @@ public class SecondActivity extends AppCompatActivity {
     Bitmap bitmapOriginal, outputBitmap;
     private ImageView verImgOriginal;
 
+    static {
+        System.loadLibrary("parte2-lib");
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);

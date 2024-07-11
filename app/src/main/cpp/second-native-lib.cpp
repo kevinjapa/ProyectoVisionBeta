@@ -102,4 +102,3 @@ void matToBitmap(JNIEnv * env, cv::Mat src, jobject bitmap, jboolean needPremult
         return;
     }
 }
-, 
