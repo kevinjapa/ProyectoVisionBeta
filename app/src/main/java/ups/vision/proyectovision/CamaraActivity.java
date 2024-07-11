@@ -43,6 +43,7 @@ public class CamaraActivity extends CameraActivity {
         getPermission();
         cameraBridgeViewBase = findViewById(R.id.cameraView);
         Button captura = findViewById(R.id.captura);
+        Button capturap2 = findViewById(R.id.btnCapturaP2);
         lblFPS= findViewById(R.id.lblFPS);
         lblFPS.setTextColor(getResources().getColor(R.color.white));
         cameraBridgeViewBase.setCvCameraViewListener(new CameraBridgeViewBase.CvCameraViewListener2(){
@@ -78,6 +79,15 @@ public class CamaraActivity extends CameraActivity {
                 if(frame != null){
                     System.out.println(frame.size());
                     captureImagen();
+                }
+            }
+        });
+        capturap2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(frame != null){
+                    System.out.println(frame.size());
+                    captureImagenP2();
                 }
             }
         });
@@ -143,6 +153,41 @@ public class CamaraActivity extends CameraActivity {
         }
 
         Intent intent = new Intent(CamaraActivity.this, MainActivity.class);
+        intent.putExtra("capturedImage", byteArray);
+        startActivity(intent);
+        finish();
+    }
+
+    public void captureImagenP2() {
+        Core.rotate(frame, frame, Core.ROTATE_90_CLOCKWISE);
+        bitmap = Bitmap.createBitmap(frame.cols(), frame.rows(), Bitmap.Config.ARGB_8888);
+        Utils.matToBitmap(frame, bitmap);
+
+        ByteArrayOutputStream stream = new ByteArrayOutputStream();
+        bitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+        byte[] byteArray = stream.toByteArray();
+
+        int targetSize = 1000000; // 1MB
+        int width = bitmap.getWidth();
+        int height = bitmap.getHeight();
+
+        while (byteArray.length > targetSize && width > 1 && height > 1) {
+            width /= 2;
+            height /= 2;
+            Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, width, height, true);
+            stream.reset();
+            resizedBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream);
+            byteArray = stream.toByteArray();
+        }
+        int quality = 50;
+        while (byteArray.length > 1000000 && quality > 10) { // Ajustar si el tamaño es mayor a 1MB
+            stream.reset();
+            quality -= 10;
+            bitmap.compress(Bitmap.CompressFormat.PNG, quality, stream);
+            byteArray = stream.toByteArray();
+        }
+
+        Intent intent = new Intent(CamaraActivity.this, SecondActivity.class);
         intent.putExtra("capturedImage", byteArray);
         startActivity(intent);
         finish();

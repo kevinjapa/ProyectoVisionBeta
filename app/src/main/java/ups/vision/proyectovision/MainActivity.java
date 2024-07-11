@@ -28,7 +28,6 @@ import java.net.Socket;
 
 
 public class MainActivity extends AppCompatActivity {
-
     ImageView imagenTomada, imagenFiltro;
     Bitmap bitmapOriginal, outputBitmap;
     TextView txtRam,txtMensaje;
@@ -48,6 +47,7 @@ public class MainActivity extends AppCompatActivity {
         Button btnFondo = findViewById(R.id.btnFondo);
         Button btnEnviar = findViewById(R.id.btnEnviar);
         Button btnFondoVerde =findViewById(R.id.tbnFondoVerde);
+        Button btnParte2 = findViewById(R.id.btnParte2);
         EditText txtIP = findViewById(R.id.txtIP);
         txtRam = findViewById(R.id.lblRAM);
         imagenTomada= findViewById(R.id.imgOriginal);
@@ -68,6 +68,14 @@ public class MainActivity extends AppCompatActivity {
             };
         }
         handler.post(runnable);
+
+        btnParte2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent parte2 = new Intent(MainActivity.this, SecondActivity.class);
+                startActivity(parte2);
+            }
+        });
         captura.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

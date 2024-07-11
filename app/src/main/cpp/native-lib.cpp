@@ -21,11 +21,6 @@ Java_ups_vision_proyectovision_MainActivity_stringFromJNI(
     std::string hello = "Hello from C++";
     return env->NewStringUTF(hello.c_str());
 }
-//extern "C" JNIEXPORT void JNICALL
-//Java_ups_vision_proyectovision_MainActivity_imagenGris(JNIEnv *env, jobject object, jobject imagen) {
-//   Mat mGray= reinterpret_cast<Mat &&>(imagen);
-//   cvtColor(mGray, mGray, COLOR_RGBA2GRAY);
-//}
 
 void bitmapToMat(JNIEnv * env, jobject bitmap, cv::Mat &dst, jboolean needUnPremultiplyAlpha){
     AndroidBitmapInfo info;

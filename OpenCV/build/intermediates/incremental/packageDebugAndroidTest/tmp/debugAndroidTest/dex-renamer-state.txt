@@ -1,4 +1,4 @@
-#Mon May 27 20:52:39 ECT 2024
+#Wed Jul 10 19:46:26 ECT 2024
 base.0=/Users/kevinjapa/StudioProjects/ProyectoVision/OpenCV/build/intermediates/dex/debugAndroidTest/mergeExtDexDebugAndroidTest/classes.dex
 base.1=/Users/kevinjapa/StudioProjects/ProyectoVision/OpenCV/build/intermediates/dex/debugAndroidTest/mergeLibDexDebugAndroidTest/0/classes.dex
 base.2=/Users/kevinjapa/StudioProjects/ProyectoVision/OpenCV/build/intermediates/dex/debugAndroidTest/mergeProjectDexDebugAndroidTest/0/classes.dex
