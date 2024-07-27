@@ -6,6 +6,8 @@
 #include <opencv2/dnn.hpp>
 #include <opencv2/video.hpp>
 #include <android/log.h>
+#include <fstream>
+
 
 #include "android/bitmap.h"
 #include <android/asset_manager.h>
@@ -166,6 +168,7 @@ bool loadCascade(CascadeClassifier& cascade, const char* filename) {
     return true;
 }
 
+//Inicializa los Assets
 extern "C"
 JNIEXPORT void JNICALL
 Java_ups_vision_proyectovision_SecondActivity_initAssetManager(JNIEnv* env, jobject, jobject mgr) {
@@ -179,7 +182,9 @@ Java_ups_vision_proyectovision_SecondActivity_initAssetManager(JNIEnv* env, jobj
 
 extern "C"
 JNIEXPORT void JNICALL
-Java_ups_vision_proyectovision_SecondActivity_reconocimiento(JNIEnv* env, jobject, jobject bitmapIn, jobject bitmapOut) {
+Java_ups_vision_proyectovision_SecondActivity_reconocimiento(JNIEnv* env, jobject instance, jobject bitmapIn, jobject bitmapOut, jstring path) {
+    const char *pathStr = env->GetStringUTFChars(path, 0);
+
     // Verificar si el AssetManager está inicializado
     if (!assetManager) {
         LOGE("AssetManager is null, cannot load cascades");
@@ -220,7 +225,6 @@ Java_ups_vision_proyectovision_SecondActivity_reconocimiento(JNIEnv* env, jobjec
         LOGI("Loaded mouth cascade successfully");
     }
 
-    // Convertir bitmap a Mat (usando funciones que ya tienes implementadas)
     Mat src;
     bitmapToMat(env, bitmapIn, src, false);
 
@@ -230,11 +234,16 @@ Java_ups_vision_proyectovision_SecondActivity_reconocimiento(JNIEnv* env, jobjec
     cvtColor(src, gray, COLOR_BGR2GRAY);
     equalizeHist(gray, gray);
 
+    // Abrir archivo para guardar los puntos
+    ofstream outFile(pathStr);
+    outFile << "type,x,y,width,height\n"; // Encabezado del CSV
+
     // Detectar rostros
     face_cascade.detectMultiScale(gray, faces, 1.1, 5, 0 | CASCADE_SCALE_IMAGE, Size(30, 30));
 
     for (size_t i = 0; i < faces.size(); i++) {
         rectangle(src, faces[i], Scalar(255, 0, 255), 4);
+        outFile << "face," << faces[i].x << "," << faces[i].y << "," << faces[i].width << "," << faces[i].height << "\n";
 
         Mat faceROI = gray(faces[i]);
         Mat faceColorROI = src(faces[i]);
@@ -243,21 +252,31 @@ Java_ups_vision_proyectovision_SecondActivity_reconocimiento(JNIEnv* env, jobjec
         for (size_t j = 0; j < eyes.size(); j++) {
             Rect eye_rect = Rect(faces[i].x + eyes[j].x, faces[i].y + eyes[j].y, eyes[j].width, eyes[j].height);
             rectangle(src, eye_rect, Scalar(255, 0, 0), 4);
+            outFile << "eye," << eye_rect.x << "," << eye_rect.y << "," << eye_rect.width << "," << eye_rect.height << "\n";
         }
 
         nose_cascade.detectMultiScale(faceROI, noses, 1.1, 5, 0 | CASCADE_SCALE_IMAGE, Size(30, 30));
         for (size_t j = 0; j < noses.size(); j++) {
             Rect nose_rect = Rect(faces[i].x + noses[j].x, faces[i].y + noses[j].y, noses[j].width, noses[j].height);
             rectangle(src, nose_rect, Scalar(0, 255, 0), 4);
+            outFile << "nose," << nose_rect.x << "," << nose_rect.y << "," << nose_rect.width << "," << nose_rect.height << "\n";
         }
 
         mouth_cascade.detectMultiScale(faceROI, mouths, 1.1, 5, 0 | CASCADE_SCALE_IMAGE, Size(30, 30));
         for (size_t j = 0; j < mouths.size(); j++) {
             Rect mouth_rect = Rect(faces[i].x + mouths[j].x, faces[i].y + mouths[j].y, mouths[j].width, mouths[j].height);
             rectangle(src, mouth_rect, Scalar(0, 0, 255), 4);
+            outFile << "mouth," << mouth_rect.x << "," << mouth_rect.y << "," << mouth_rect.width << "," << mouth_rect.height << "\n";
         }
     }
+
+    // Cerrar el archivo
+    outFile.close();
+
+    // Liberar la cadena de caracteres
+    env->ReleaseStringUTFChars(path, pathStr);
 
     // Convertir Mat a bitmap (usando funciones que ya tienes implementadas)
     matToBitmap(env, src, bitmapOut, false);
 }
+

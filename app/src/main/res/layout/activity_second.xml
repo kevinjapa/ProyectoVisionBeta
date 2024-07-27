@@ -67,13 +67,25 @@
 
     <Button
         android:id="@+id/btnHog"
-        android:layout_width="122dp"
-        android:layout_height="49dp"
+        android:layout_width="146dp"
+        android:layout_height="43dp"
         android:text="Enviar HOG"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.809"
+        app:layout_constraintHorizontal_bias="0.15"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.819" />
+        app:layout_constraintVertical_bias="0.82" />
+
+    <Button
+        android:id="@+id/btnEnviarPuntos"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Enviar Puntos"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.862"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.824" />
 </androidx.constraintlayout.widget.ConstraintLayout>
