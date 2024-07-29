@@ -2,13 +2,16 @@ package ups.vision.proyectovision;
 
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
@@ -30,6 +33,8 @@ import java.net.Socket;
 public class SecondActivity extends AppCompatActivity {
     Bitmap bitmapOriginal, outputBitmap;
     private ImageView verImgOriginal, verImgOutput;
+    SharedPreferences sharedPreferences;
+    EditText txtDireccionIp;
 
     static {
         System.loadLibrary("parte2-lib");
@@ -39,6 +44,9 @@ public class SecondActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState){
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_second);
+
+        sharedPreferences = getSharedPreferences("MyPrefs", MODE_PRIVATE);
+
         verImgOriginal= findViewById(R.id.imgOriginal1);
         verImgOutput= findViewById(R.id.imgOutputReconociento);
         Button btnCamara = findViewById(R.id.btnCamara2);
@@ -46,11 +54,23 @@ public class SecondActivity extends AppCompatActivity {
         Button btnReconocer = findViewById(R.id.btnReconocer);
         Button btnHug = findViewById(R.id.btnHog);
         Button btnEnviarPuntos = findViewById(R.id.btnEnviarPuntos);
-        initAssetManager(getAssets());
+        TextView lblPrediccion = findViewById(R.id.lblPrediccion);
+        txtDireccionIp = findViewById(R.id.txtDireccionIP2);
+        initAssetManager(getAssets()); // inicalizamos los assets que tenemos de los modelos
+
+        // Recuperar el valor almacenado en SharedPreferences y colocarlo en el TextView
+        String savedIp = sharedPreferences.getString("saved_ip", "11");
+        txtDireccionIp.setText(savedIp);
 
         btnCamara.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                // Guardar la dirección IP en SharedPreferences antes de cambiar de actividad
+                String currentIp = txtDireccionIp.getText().toString();
+                SharedPreferences.Editor editor = sharedPreferences.edit();
+                editor.putString("saved_ip", currentIp);
+                editor.apply();
+
                 Intent camara = new Intent( SecondActivity.this, CamaraActivity.class);
                 startActivity(camara);
                 finish();
@@ -78,44 +98,14 @@ public class SecondActivity extends AppCompatActivity {
                 System.out.println("Si esta entrando en la parte ----------------------------");
             }
         });
+
         btnHug.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                verImgOutput.setImageBitmap(bitmapOriginal);
-//                outputBitmap = bitmapOriginal.copy(bitmapOriginal.getConfig(), true);
-                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                bitmapOriginal.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
-                byte[] byteArray = outputStream.toByteArray();
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-//                                    Socket socket = new Socket("192.168.0.112", 3500);
-                            Socket socket = new Socket("192.168.8.104", 3501);
-                            OutputStream out = socket.getOutputStream();
-                            out.write(byteArray);
-                            out.flush();
-                            out.close();
-                            socket.close();
-                            System.out.println("Imagen Enviada");
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast.makeText(getApplicationContext(), "Imagen Enviado", Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                        }
-                        catch (IOException e){
-                            e.printStackTrace();
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                        }
-                    }
-                }).start();
+                outputBitmap = bitmapOriginal.copy(bitmapOriginal.getConfig(), true);
+                String resultado=Predecir(bitmapOriginal,outputBitmap);
+                verImgOutput.setImageBitmap(outputBitmap);
+                lblPrediccion.setText(resultado);
             }
         });
         btnEnviarPuntos.setOnClickListener(new View.OnClickListener() {
@@ -144,48 +134,54 @@ public class SecondActivity extends AppCompatActivity {
                     Toast.makeText(getApplicationContext(), "Error al comprimir los archivos", Toast.LENGTH_SHORT).show();
                     return;
                 }
+                if (txtDireccionIp.getText().toString().isEmpty()){
+                    Toast.makeText(getApplicationContext(), "Ingrese la Direccion", Toast.LENGTH_SHORT).show();
+                }
+                else
+                {
+                    // Enviar el archivo ZIP al servidor
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+//                            Socket socket = new Socket("192.168.0.104", 3500);
+                                Socket socket = new Socket(txtDireccionIp.getText().toString(), 3500);
+                                OutputStream out = socket.getOutputStream();
 
-                // Enviar el archivo ZIP al servidor
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
-                        try {
-                            Socket socket = new Socket("192.168.8.104", 3500);
-                            OutputStream out = socket.getOutputStream();
-
-                            FileInputStream fileInputStream = new FileInputStream(zipFile);
-                            byte[] buffer = new byte[1024];
-                            int bytesRead;
-                            while ((bytesRead = fileInputStream.read(buffer)) != -1) {
-                                out.write(buffer, 0, bytesRead);
+                                FileInputStream fileInputStream = new FileInputStream(zipFile);
+                                byte[] buffer = new byte[1024];
+                                int bytesRead;
+                                while ((bytesRead = fileInputStream.read(buffer)) != -1) {
+                                    out.write(buffer, 0, bytesRead);
+                                }
+                                fileInputStream.close();
+                                out.flush();
+                                out.close();
+                                socket.close();
+                                System.out.println("ZIP Enviado");
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(getApplicationContext(), "ZIP Enviado", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                                runOnUiThread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
                             }
-                            fileInputStream.close();
-                            out.flush();
-                            out.close();
-                            socket.close();
-                            System.out.println("ZIP Enviado");
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast.makeText(getApplicationContext(), "ZIP Enviado", Toast.LENGTH_SHORT).show();
-                                }
-                            });
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                            runOnUiThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    Toast.makeText(getApplicationContext(), "Error", Toast.LENGTH_SHORT).show();
-                                }
-                            });
                         }
-                    }
-                }).start();
+                    }).start();
+                }
             }
         });
 
 
-//        Clase para obtener la imagen de camara con open cv
+//      Clase para obtener la imagen de camara con open cv
         Intent intent = getIntent();
         byte[] byteArray = intent.getByteArrayExtra("capturedImage");
         if (byteArray != null) {
@@ -231,4 +227,5 @@ public class SecondActivity extends AppCompatActivity {
     // definicion de clases nativas de c++
     private native void reconocimiento(android.graphics.Bitmap in, android.graphics.Bitmap out, String path);
     public native void initAssetManager(AssetManager assetManager);
+    private native String Predecir(android.graphics.Bitmap in, android.graphics.Bitmap out);
 }

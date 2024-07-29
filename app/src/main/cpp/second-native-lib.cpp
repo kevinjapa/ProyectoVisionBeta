@@ -23,6 +23,7 @@
 using namespace cv;
 using namespace std;
 using namespace cv::ml;
+using namespace ml;
 
 AAssetManager* assetManager = nullptr;
 
@@ -278,5 +279,217 @@ Java_ups_vision_proyectovision_SecondActivity_reconocimiento(JNIEnv* env, jobjec
 
     // Convertir Mat a bitmap (usando funciones que ya tienes implementadas)
     matToBitmap(env, src, bitmapOut, false);
+}
+
+
+//FUNCIONES PARA PRDECIR
+
+bool readAssetToBuffer(const char* filename, vector<char>& buffer) {
+    if (!assetManager) {
+        LOGE("AssetManager is null");
+        return false;
+    }
+
+    AAsset* asset = AAssetManager_open(assetManager, filename, AASSET_MODE_BUFFER);
+    if (!asset) {
+        LOGE("Failed to open asset: %s", filename);
+        return false;
+    }
+
+    size_t size = AAsset_getLength(asset);
+    buffer.resize(size);
+
+    int readBytes = AAsset_read(asset, buffer.data(), size);
+    if (readBytes != size) {
+        LOGE("Failed to read asset: %s", filename);
+        AAsset_close(asset);
+        return false;
+    }
+
+    AAsset_close(asset);
+    LOGI("Loaded asset file %s successfully, size: %zu bytes", filename, size);
+    return true;
+}
+
+bool loadANNModel(Ptr<ml::ANN_MLP>& model, const char* filename) {
+    vector<char> buffer;
+    if (!readAssetToBuffer(filename, buffer)) {
+        LOGE("Failed to load file from assets: %s", filename);
+        return false;
+    }
+
+    string tempFilePath = "/data/data/ups.vision.proyectovision/files/temp_model.yml";
+    FILE* tempFile = fopen(tempFilePath.c_str(), "wb");
+    if (!tempFile) {
+        LOGE("Failed to create temporary file");
+        return false;
+    }
+    fwrite(buffer.data(), 1, buffer.size(), tempFile);
+    fclose(tempFile);
+
+    model = ml::ANN_MLP::load(tempFilePath);
+    if (model.empty()) {
+        LOGE("Failed to load model from temporary file: %s", filename);
+        remove(tempFilePath.c_str());
+        return false;
+    }
+
+    remove(tempFilePath.c_str());
+    return true;
+}
+
+bool loadClassLabels(map<int, string>& labelMap, const char* filename) {
+    vector<char> buffer;
+    if (!readAssetToBuffer(filename, buffer)) {
+        LOGE("Failed to load file from assets: %s", filename);
+        return false;
+    }
+
+    istringstream inputStream(string(buffer.begin(), buffer.end()));
+    int label;
+    string className;
+    while (inputStream >> label >> className) {
+        labelMap[label] = className;
+    }
+
+    return true;
+}
+
+
+
+//extern "C"
+//JNIEXPORT void JNICALL
+//Java_ups_vision_proyectovision_SecondActivity_Predecir(JNIEnv* env, jobject bitmapIn, jobject bitmapOut) {
+//
+//    Ptr<ml::ANN_MLP> modelo;
+//    map<int, string> etiquetas;
+//
+//    // Verificar si el AssetManager está inicializado
+//    if (!assetManager) {
+//        LOGE("AssetManager is null, cannot load assets");
+//        return;
+//    }
+//
+//    if (!loadANNModel(modelo, "mlp_mnist_model.yml")) {
+//        LOGE("Error al cargar el modelo");
+//        return;
+//    } else {
+//        LOGI("Modelo cargado");
+//    }
+//
+//    if (!loadClassLabels(etiquetas, "label_map.txt")) {
+//        LOGE("Error al cargar etiquetas");
+//        return;
+//    } else {
+//        LOGI("Etiquetas cargadas");
+//    }
+//
+//    Mat src;
+//    bitmapToMat(env, bitmapIn, src, false);
+//
+//    // Redimensionar la imagen al tamaño esperado
+//    Mat resizedImage;
+//    resize(src, resizedImage, Size(28, 28)); // Cambiar el tamaño a 28x28 para MNIST
+//
+//    // Definir los parámetros del HOGDescriptor
+//    HOGDescriptor hog(
+//            Size(28, 28),   // winSize (tamaño de las imágenes MNIST)
+//            Size(14, 14),   // blockSize
+//            Size(7, 7),     // blockStride
+//            Size(7, 7),     // cellSize
+//            9               // nbins
+//    );
+//
+//    // Extraer características usando HOG
+//    vector<float> descriptor;
+//    hog.compute(resizedImage, descriptor);
+//
+//    // Convertir el descriptor a Mat y asegurar que sea de tipo CV_32F
+//    Mat descriptorMat = Mat(descriptor).reshape(1, 1);  // Reshape para tener una fila por descriptor
+//    descriptorMat.convertTo(descriptorMat, CV_32F);     // Convertir a tipo CV_32F
+//
+//    // Predecir la clase usando el modelo MLP
+//    Mat response;
+//    modelo->predict(descriptorMat, response);
+//    Point maxLoc;
+//    minMaxLoc(response, 0, 0, 0, &maxLoc);
+//    int predictedLabel = maxLoc.x;
+//
+//    // Mostrar el nombre de la clase en lugar del número de etiqueta
+//    string predictedClassName = etiquetas[predictedLabel];
+//    LOGI("La imagen ha sido clasificada como: %s", predictedClassName.c_str());
+//
+//    // Convertir Mat a bitmap (usando funciones que ya tienes implementadas)
+//    matToBitmap(env, src, bitmapOut, false);
+//}
+
+extern "C"
+JNIEXPORT jstring JNICALL
+Java_ups_vision_proyectovision_SecondActivity_Predecir(JNIEnv* env, jobject obj, jobject bitmapIn, jobject bitmapOut) {
+
+    Ptr<ml::ANN_MLP> modelo;
+    map<int, string> etiquetas;
+
+    // Verificar si el AssetManager está inicializado
+    if (!assetManager) {
+        LOGE("AssetManager is null, cannot load assets");
+//        return;
+    }
+
+    if (!loadANNModel(modelo, "mlp_mnist_model.yml")) {
+        LOGE("Error al cargar el modelo");
+//        return;
+    } else {
+        LOGI("Modelo cargado");
+    }
+
+    if (!loadClassLabels(etiquetas, "label_map.txt")) {
+        LOGE("Error al cargar etiquetas");
+//        return;
+    } else {
+        LOGI("Etiquetas cargadas");
+    }
+
+    string resultadoStr;
+    Mat src;
+    bitmapToMat(env, bitmapIn, src, false);
+    // Convertir la imagen a escala de grises si es necesario
+    cvtColor(src, src, COLOR_BGR2GRAY);
+    // Redimensionar la imagen al tamaño esperado
+    Mat resizedImage;
+    resize(src, resizedImage, Size(28, 28)); // Cambiar el tamaño a 28x28 para MNIST
+
+    // Definir los parámetros del HOGDescriptor
+    HOGDescriptor hog(
+            Size(28, 28),   // winSize (tamaño de las imágenes MNIST)
+            Size(14, 14),   // blockSize
+            Size(7, 7),     // blockStride
+            Size(7, 7),     // cellSize
+            9               // nbins
+    );
+
+    // Extraer características usando HOG
+    vector<float> descriptor;
+    hog.compute(resizedImage, descriptor);
+
+    // Convertir el descriptor a Mat y asegurar que sea de tipo CV_32F
+    Mat descriptorMat = Mat(descriptor).reshape(1, 1);  // Reshape para tener una fila por descriptor
+    descriptorMat.convertTo(descriptorMat, CV_32F);     // Convertir a tipo CV_32F
+
+    // Predecir la clase usando el modelo MLP
+    Mat response;
+    modelo->predict(descriptorMat, response);
+    Point maxLoc;
+    minMaxLoc(response, 0, 0, 0, &maxLoc);
+    int predictedLabel = maxLoc.x;
+
+    // Mostrar el nombre de la clase en lugar del número de etiqueta
+    string predictedClassName = etiquetas[predictedLabel];
+    LOGI("La imagen ha sido clasificada como: %s", predictedClassName.c_str());
+    resultadoStr=("Es el Nro : "+ predictedClassName);
+
+    // Convertir Mat a bitmap (usando funciones que ya tienes implementadas)
+    matToBitmap(env, src, bitmapOut, false);
+    return env->NewStringUTF(resultadoStr.c_str());
 }
 
